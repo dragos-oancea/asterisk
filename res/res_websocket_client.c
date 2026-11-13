@@ -418,6 +418,14 @@ void ast_websocket_client_add_uri_params(struct ast_websocket_client *wc,
 struct ast_websocket *ast_websocket_client_connect(struct ast_websocket_client *wc,
 	void *lock_obj, const char *display_name, enum ast_websocket_result *result)
 {
+	return ast_websocket_client_connect_with_params(wc, lock_obj, display_name,
+		wc->uri_params, result);
+}
+
+struct ast_websocket *ast_websocket_client_connect_with_params(
+	struct ast_websocket_client *wc, void *lock_obj, const char *display_name,
+	const char *uri_params, enum ast_websocket_result *result)
+{
 	int reconnect_counter = wc->reconnect_attempts;
 	char *uri = NULL;
 
@@ -425,18 +433,18 @@ struct ast_websocket *ast_websocket_client_connect(struct ast_websocket_client *
 		display_name = ast_sorcery_object_get_id(wc);
 	}
 
-	if (!ast_strlen_zero(wc->uri_params)) {
+	if (!ast_strlen_zero(uri_params)) {
 		/*
 		 * If the configured URI doesn't already contain parameters, we append the
 		 * new ones to the URI path component with '?'.  If it does, we append the
 		 * new ones to the existing ones with a '&'.
 		 */
 		char sep = '?';
-		uri = ast_alloca(strlen(wc->uri) + strlen(wc->uri_params) + 2);
+		uri = ast_alloca(strlen(wc->uri) + strlen(uri_params) + 2);
 		if (strchr(wc->uri, '?')) {
 			sep = '&';
 		}
-		sprintf(uri, "%s%c%s", wc->uri, sep, wc->uri_params); /*Safe */
+		sprintf(uri, "%s%c%s", wc->uri, sep, uri_params); /*Safe */
 	}
 
 	while (1) {

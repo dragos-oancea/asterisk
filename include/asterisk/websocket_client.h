@@ -175,10 +175,44 @@ struct ast_websocket *ast_websocket_client_connect(struct ast_websocket_client *
 	void *lock_obj, const char *display_name, enum ast_websocket_result *result);
 
 /*!
+ * \brief Connect to a websocket server, appending per-connection
+ *        parameters to the configured URI.
+ *
+ * This behaves like \ref ast_websocket_client_connect except that
+ * \a uri_params is used instead of any parameters stored on \a wc.
+ * The websocket client object is shared configuration, so
+ * per-connection parameters must be passed here rather than stored on
+ * it with \ref ast_websocket_client_add_uri_params.
+ *
+ * \param wc A pointer to the ast_websocket_structure
+ * \param lock_obj A pointer to an ao2 object to lock while the
+ *                 connection is being attempted or NULL if no locking is needed.
+ * \param display_name An id string to use for logging messages.
+ *                     If NULL or empty the connection's ID will be used.
+ * \param uri_params A string containing URLENCODED parameters to append
+ *                   to the URI, or NULL/empty for none.
+ * \param result A pointer to an enum ast_websocket_result to store the
+ *               result of the connection attempt.
+ *
+ * \return A pointer to the ast_websocket structure on success, or NULL on failure.
+ *
+ * \warning The returned websocket must be closed with \ref ast_websocket_close
+ * and its reference count decremented with \ref ast_websocket_unref when
+ * it's no longer needed.
+ */
+struct ast_websocket *ast_websocket_client_connect_with_params(
+	struct ast_websocket_client *wc, void *lock_obj, const char *display_name,
+	const char *uri_params, enum ast_websocket_result *result);
+
+/*!
  * \brief Add additional parameters to the URI.
  *
  * \param wc A pointer to the ast_websocket_structure
  * \param uri_params A string containing URLENCODED parameters to append to the URI.
+ *
+ * \warning The websocket client object is shared by every connection that
+ * uses it, so parameters set here apply to all of them.  For per-connection
+ * parameters use \ref ast_websocket_client_connect_with_params instead.
  */
 void ast_websocket_client_add_uri_params(struct ast_websocket_client *wc,
 	const char *uri_params);

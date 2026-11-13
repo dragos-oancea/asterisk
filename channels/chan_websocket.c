@@ -1408,12 +1408,12 @@ static int webchan_call(struct ast_channel *ast, const char *dest,
 	ast_debug(3, "%s: WebSocket call requested to %s. cid: %s\n",
 		ast_channel_name(ast), dest, instance->connection_id);
 
-	if (!ast_strlen_zero(instance->uri_params)) {
-		ast_websocket_client_add_uri_params(instance->client, instance->uri_params);
-	}
-
-	instance->websocket = ast_websocket_client_connect(instance->client,
-		instance, ast_channel_name(ast), &result);
+	/*
+	 * instance->client is shared configuration, so this call's URI
+	 * parameters are passed to the connect rather than stored on it.
+	 */
+	instance->websocket = ast_websocket_client_connect_with_params(instance->client,
+		instance, ast_channel_name(ast), instance->uri_params, &result);
 	if (!instance->websocket || result != WS_OK) {
 		ast_log(LOG_WARNING, "%s: WebSocket connection failed to %s: %s\n",
 			ast_channel_name(ast), dest, ast_websocket_result_to_str(result));
